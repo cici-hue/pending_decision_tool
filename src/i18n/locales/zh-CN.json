@@ -1,0 +1,43 @@
+{
+  "app": {
+    "title": "AQL 检验报告工具",
+    "uploadPDF": "上传 PDF",
+    "extracting": "提取中...",
+    "history": "历史记录",
+    "noHistory": "暂无历史记录",
+    "uploadPrompt": "上传 PDF 文件开始提取",
+    "uploadHint": "支持批量上传，一次处理多个文件",
+    "generateEmail": "生成邮件",
+    "emailSuccess": "邮件已打开！请添加PDF附件后发送",
+    "noDefects": "暂无疵点信息",
+    "addDefect": "新增疵点",
+    "defectDescription": "疵点描述",
+    "defectCount": "疵点数量",
+    "defectRate": "疵点比例",
+    "operation": "操作",
+    "pendingIssue": "PENDING 问题",
+    "noPendingIssue": "无",
+    "delete": "删除",
+    "save": "保存",
+    "cancel": "取消",
+    "edit": "编辑"
+  },
+  "fields": {
+    "poNo": "PO# / Split No.",
+    "shipDate": "Expected Ship Date",
+    "styleNo": "Style#",
+    "itemNo": "Item#",
+    "deliveredQty": "Delivered Qty",
+    "inspectionQty": "Total Inspection Qty",
+    "customer": "Customer / Dept",
+    "vendor": "Vendor / Vendor No"
+  },
+  "errors": {
+    "extractionFailed": "提取失败，请检查 API Key 和网络连接"
+  },
+  "language": {
+    "switch": "切换语言",
+    "zh": "中文",
+    "en": "English"
+  }
+}

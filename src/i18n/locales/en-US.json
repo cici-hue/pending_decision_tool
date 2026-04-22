@@ -1,0 +1,43 @@
+{
+  "app": {
+    "title": "AQL Inspection Report Tool",
+    "uploadPDF": "Upload PDF",
+    "extracting": "Extracting...",
+    "history": "History",
+    "noHistory": "No history records",
+    "uploadPrompt": "Upload PDF file to start extraction",
+    "uploadHint": "Support batch upload, process multiple files at once",
+    "generateEmail": "Generate Email",
+    "emailSuccess": "Email opened! Please add PDF attachment before sending",
+    "noDefects": "No defect information",
+    "addDefect": "Add Defect",
+    "defectDescription": "Defect Description",
+    "defectCount": "Defect Count",
+    "defectRate": "Defect Rate",
+    "operation": "Operation",
+    "pendingIssue": "PENDING Issue",
+    "noPendingIssue": "None",
+    "delete": "Delete",
+    "save": "Save",
+    "cancel": "Cancel",
+    "edit": "Edit"
+  },
+  "fields": {
+    "poNo": "PO# / Split No.",
+    "shipDate": "Expected Ship Date",
+    "styleNo": "Style#",
+    "itemNo": "Item#",
+    "deliveredQty": "Delivered Qty",
+    "inspectionQty": "Total Inspection Qty",
+    "customer": "Customer / Dept",
+    "vendor": "Vendor / Vendor No"
+  },
+  "errors": {
+    "extractionFailed": "Extraction failed, please check API Key and network connection"
+  },
+  "language": {
+    "switch": "Switch Language",
+    "zh": "中文",
+    "en": "English"
+  }
+}

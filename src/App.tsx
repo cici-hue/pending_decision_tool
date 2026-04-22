@@ -1,5 +1,7 @@
 import { useState, useCallback, useRef } from 'react'
+import { useTranslation } from 'react-i18next'
 import { generateEmail as generateEmailContent, extractPdfWithDoubao } from './services/minimaxApi'
+import { LanguageSwitcher } from './components/LanguageSwitcher'
 import { Upload, FileText, Mail, X, Save, Edit3, AlertCircle, CheckCircle, Loader2 } from 'lucide-react'
 
 // PDF.js  worker 配置
@@ -60,6 +62,7 @@ async function extractPdfText(file: File): Promise<string> {
 }
 
 export default function App() {
+  const { t } = useTranslation()
   const [history, setHistory] = useState<ReportData[]>(loadHistory)
   const [currentReport, setCurrentReport] = useState<ReportData | null>(null)
   const [emailStatus, setEmailStatus] = useState<'idle' | 'success' | 'error'>('idle')
@@ -256,9 +259,10 @@ export default function App() {
         <div className="max-w-6xl mx-auto flex items-center justify-between">
           <div className="flex items-center gap-3">
             <FileText className="w-8 h-8 text-blue-400" />
-            <h1 className="text-xl font-bold">AQL 检验报告工具</h1>
+            <h1 className="text-xl font-bold">{t('app.title')}</h1>
           </div>
           <div className="flex items-center gap-2">
+            <LanguageSwitcher />
             <input
               ref={fileInputRef}
               type="file"
@@ -273,7 +277,7 @@ export default function App() {
               className="flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-500 rounded-lg transition-colors disabled:opacity-50"
             >
               {isExtracting ? <Loader2 className="w-5 h-5 animate-spin" /> : <Upload className="w-5 h-5" />}
-              {isExtracting ? '提取中...' : '上传 PDF'}
+              {isExtracting ? t('app.extracting') : t('app.uploadPDF')}
             </button>
           </div>
         </div>
@@ -296,9 +300,9 @@ export default function App() {
           
           {/* 历史记录列表 */}
           <div className="lg:col-span-1 bg-slate-800 rounded-xl p-4">
-            <h2 className="text-lg font-medium mb-4">历史记录 ({history.length})</h2>
+            <h2 className="text-lg font-medium mb-4">{t('app.history')} ({history.length})</h2>
             {history.length === 0 ? (
-              <p className="text-slate-400 text-sm">暂无历史记录</p>
+              <p className="text-slate-400 text-sm">{t('app.noHistory')}</p>
             ) : (
               <div className="space-y-2 max-h-96 overflow-y-auto">
                 {history.map(report => (
@@ -348,7 +352,7 @@ export default function App() {
                 {/* 基本信息 */}
                 <div className="grid grid-cols-2 md:grid-cols-3 gap-4 mb-6">
                   <div className="bg-slate-700/50 rounded-lg p-3">
-                    <p className="text-xs text-slate-400 mb-1">PO# / Split No.</p>
+                    <p className="text-xs text-slate-400 mb-1">{t('fields.poNo')}</p>
                     {editingField === 'poNo' ? (
                       <input value={editValue} onChange={e => setEditValue(e.target.value)} className="w-full bg-slate-600 rounded px-2 py-1" autoFocus onKeyDown={e => e.key === 'Enter' && saveEdit()} />
                     ) : (
@@ -356,7 +360,7 @@ export default function App() {
                     )}
                   </div>
                   <div className="bg-slate-700/50 rounded-lg p-3">
-                    <p className="text-xs text-slate-400 mb-1">Expected Ship Date</p>
+                    <p className="text-xs text-slate-400 mb-1">{t('fields.shipDate')}</p>
                     {editingField === 'shipDate' ? (
                       <input value={editValue} onChange={e => setEditValue(e.target.value)} className="w-full bg-slate-600 rounded px-2 py-1" autoFocus onKeyDown={e => e.key === 'Enter' && saveEdit()} />
                     ) : (
@@ -364,7 +368,7 @@ export default function App() {
                     )}
                   </div>
                   <div className="bg-slate-700/50 rounded-lg p-3">
-                    <p className="text-xs text-slate-400 mb-1">Style#</p>
+                    <p className="text-xs text-slate-400 mb-1">{t('fields.styleNo')}</p>
                     {editingField === 'styleNo' ? (
                       <input value={editValue} onChange={e => setEditValue(e.target.value)} className="w-full bg-slate-600 rounded px-2 py-1" autoFocus onKeyDown={e => e.key === 'Enter' && saveEdit()} />
                     ) : (
@@ -372,7 +376,7 @@ export default function App() {
                     )}
                   </div>
                   <div className="bg-slate-700/50 rounded-lg p-3">
-                    <p className="text-xs text-slate-400 mb-1">Item#</p>
+                    <p className="text-xs text-slate-400 mb-1">{t('fields.itemNo')}</p>
                     {editingField === 'itemNo' ? (
                       <input value={editValue} onChange={e => setEditValue(e.target.value)} className="w-full bg-slate-600 rounded px-2 py-1" autoFocus onKeyDown={e => e.key === 'Enter' && saveEdit()} />
                     ) : (
@@ -380,7 +384,7 @@ export default function App() {
                     )}
                   </div>
                   <div className="bg-slate-700/50 rounded-lg p-3">
-                    <p className="text-xs text-slate-400 mb-1">Delivered Qty</p>
+                    <p className="text-xs text-slate-400 mb-1">{t('fields.deliveredQty')}</p>
                     {editingField === 'deliveredQty' ? (
                       <input value={editValue} onChange={e => setEditValue(e.target.value)} className="w-full bg-slate-600 rounded px-2 py-1" autoFocus onKeyDown={e => e.key === 'Enter' && saveEdit()} />
                     ) : (
@@ -388,11 +392,11 @@ export default function App() {
                     )}
                   </div>
                   <div className="bg-slate-700/50 rounded-lg p-3">
-                    <p className="text-xs text-slate-400 mb-1">Total Inspection Qty</p>
+                    <p className="text-xs text-slate-400 mb-1">{t('fields.inspectionQty')}</p>
                     <p className="text-lg font-bold text-green-400">{currentReport.inspectionQty || 'N/A'}</p>
                   </div>
                   <div className="bg-slate-700/50 rounded-lg p-3">
-                    <p className="text-xs text-slate-400 mb-1">Customer / Dept</p>
+                    <p className="text-xs text-slate-400 mb-1">{t('fields.customer')}</p>
                     {editingField === 'customer' ? (
                       <input value={editValue} onChange={e => setEditValue(e.target.value)} className="w-full bg-slate-600 rounded px-2 py-1" autoFocus onKeyDown={e => e.key === 'Enter' && saveEdit()} />
                     ) : (
@@ -400,7 +404,7 @@ export default function App() {
                     )}
                   </div>
                   <div className="bg-slate-700/50 rounded-lg p-3 col-span-2 md:col-span-1">
-                    <p className="text-xs text-slate-400 mb-1">Vendor / Vendor No</p>
+                    <p className="text-xs text-slate-400 mb-1">{t('fields.vendor')}</p>
                     {editingField === 'vendor' ? (
                       <input value={editValue} onChange={e => setEditValue(e.target.value)} className="w-full bg-slate-600 rounded px-2 py-1" autoFocus onKeyDown={e => e.key === 'Enter' && saveEdit()} />
                     ) : (
@@ -413,7 +417,7 @@ export default function App() {
                 <div className="bg-amber-500/10 border border-amber-500/30 rounded-lg p-4 mb-4">
                   <div className="flex items-center gap-2 mb-2">
                     <AlertCircle className="w-4 h-4 text-amber-400" />
-                    <span className="text-amber-400 font-medium">PENDING 问题</span>
+                    <span className="text-amber-400 font-medium">{t('app.pendingIssue')}</span>
                   </div>
                   {editingField === 'pendingIssue' ? (
                     <div className="flex gap-2">
@@ -431,7 +435,7 @@ export default function App() {
                     </div>
                   ) : (
                     <div className="flex items-start gap-2 group">
-                      <p className="text-sm flex-1">{currentReport.pendingIssue || '无'}</p>
+                      <p className="text-sm flex-1">{currentReport.pendingIssue || t('app.noPendingIssue')}</p>
                       <button onClick={() => startEdit('pendingIssue')} className="opacity-0 group-hover:opacity-100 p-1 hover:bg-slate-700 rounded">
                         <Edit3 className="w-3 h-3 text-slate-400" />
                       </button>
@@ -443,14 +447,14 @@ export default function App() {
                 <div className="bg-purple-500/10 border border-purple-500/30 rounded-lg p-4 mb-6">
                   <div className="flex items-center justify-between mb-3">
                     <div className="flex items-center gap-4">
-                      <span className="text-purple-400 font-medium">疵点详情</span>
-                      <span className="text-xs bg-slate-600 px-2 py-0.5 rounded">Total Inspection Qty: {currentReport.inspectionQty || 'N/A'}</span>
+                      <span className="text-purple-400 font-medium">{t('app.defectDetails')}</span>
+                      <span className="text-xs bg-slate-600 px-2 py-0.5 rounded">{t('fields.inspectionQty')}: {currentReport.inspectionQty || 'N/A'}</span>
                     </div>
                     <button
                       onClick={addDefect}
                       className="flex items-center gap-1 px-3 py-1 bg-purple-600 hover:bg-purple-500 rounded text-xs transition-colors"
                     >
-                      <span>+</span> 新增疵点
+                      <span>+</span> {t('app.addDefect')}
                     </button>
                   </div>
                   
@@ -458,10 +462,10 @@ export default function App() {
                     <div className="overflow-hidden rounded-lg border border-slate-600">
                       {/* 表头 */}
                       <div className="grid grid-cols-12 gap-2 bg-slate-700 px-3 py-2 text-xs font-medium text-slate-300">
-                        <div className="col-span-5">疵点描述</div>
-                        <div className="col-span-2 text-center">疵点数量</div>
-                        <div className="col-span-3 text-center">疵点比例</div>
-                        <div className="col-span-2 text-center">操作</div>
+                        <div className="col-span-5">{t('app.defectDescription')}</div>
+                        <div className="col-span-2 text-center">{t('app.defectCount')}</div>
+                        <div className="col-span-3 text-center">{t('app.defectRate')}</div>
+                        <div className="col-span-2 text-center">{t('app.operation')}</div>
                       </div>
                       {/* 数据行 */}
                       {currentReport.defectDetails.map((defect, index) => (
@@ -535,7 +539,7 @@ export default function App() {
                       ))}
                     </div>
                   ) : (
-                    <div className="text-slate-400 text-sm">暂无疵点信息</div>
+                    <div className="text-slate-400 text-sm">{t('app.noDefects')}</div>
                   )}
                 </div>
 
@@ -545,21 +549,21 @@ export default function App() {
                   className="w-full py-3 bg-gradient-to-r from-blue-600 to-purple-600 rounded-xl font-medium flex items-center justify-center gap-2 hover:from-blue-500 hover:to-purple-500"
                 >
                   <Mail className="w-5 h-5" />
-                  生成邮件
+                  {t('app.generateEmail')}
                 </button>
                 
                 {emailStatus === 'success' && (
                   <div className="mt-4 p-3 bg-green-500/10 border border-green-500/30 rounded-lg flex items-center gap-2">
                     <CheckCircle className="w-4 h-4 text-green-400" />
-                    <span className="text-green-400 text-sm">邮件已打开！请添加PDF附件后发送</span>
+                    <span className="text-green-400 text-sm">{t('app.emailSuccess')}</span>
                   </div>
                 )}
               </div>
             ) : (
               <div className="bg-slate-800 rounded-xl p-12 flex flex-col items-center justify-center text-center">
                 <Upload className="w-16 h-16 text-slate-600 mb-4" />
-                <p className="text-slate-400 text-lg mb-2">上传 PDF 文件开始提取</p>
-                <p className="text-slate-500 text-sm">支持批量上传，一次处理多个文件</p>
+                <p className="text-slate-400 text-lg mb-2">{t('app.uploadPrompt')}</p>
+                <p className="text-slate-500 text-sm">{t('app.uploadHint')}</p>
               </div>
             )}
           </div>
