@@ -1,0 +1,4 @@
+// Cloudflare Pages build configuration
+// Force npm instead of pnpm (Cloudflare's default detection picks pnpm if available)
+[build]
+command = "npm ci && npm run build"
