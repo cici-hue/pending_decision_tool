@@ -20,7 +20,8 @@
     "delete": "Delete",
     "save": "Save",
     "cancel": "Cancel",
-    "edit": "Edit"
+    "edit": "Edit",
+    "help": "Help"
   },
   "fields": {
     "poNo": "PO# / Split No.",
@@ -39,5 +40,44 @@
     "switch": "Switch Language",
     "zh": "中文",
     "en": "English"
+  },
+  "help": {
+    "title": "User Manual",
+    "close": "Close",
+    "steps": [
+      {
+        "title": "1. Upload PDF Report",
+        "content": "Click the Upload PDF button in the top right corner or click the central upload area to select the AQL inspection report PDF file you need to process. Batch upload of multiple files is supported."
+      },
+      {
+        "title": "2. Automatic Information Extraction",
+        "content": "The system will automatically extract key information from the PDF, including: PO#, Style#, Item#, inspection quantity, defect details, etc. The extraction process may take a few seconds."
+      },
+      {
+        "title": "3. View and Edit",
+        "content": "After extraction is complete, you can view the extracted information on the right side. Click any field to edit and modify. The history list on the left shows all processed reports."
+      },
+      {
+        "title": "4. Manage Defect Information",
+        "content": "In the defect details area, you can: click defect description or count to edit; click Add Defect to add new defect records; click the delete button to remove unwanted defects."
+      },
+      {
+        "title": "5. Generate Email",
+        "content": "After confirming the information is correct, click the Generate Email button. The system will automatically open your email client and generate an email with all the information. You only need to add the PDF attachment before sending."
+      },
+      {
+        "title": "6. History Records",
+        "content": "All processed reports are saved in the history. Click any record in the left list to view and edit again. History is saved locally in the browser and will be lost if browser data is cleared."
+      }
+    ],
+    "tips": {
+      "title": "Usage Tips",
+      "items": [
+        "Ensure the PDF file is in AQL inspection report format for correct information extraction",
+        "If extraction results are inaccurate, you can click fields to manually modify",
+        "It is recommended to verify all information carefully before sending emails",
+        "Use the language switch button to change the interface language between Chinese and English"
+      ]
+    }
   }
 }

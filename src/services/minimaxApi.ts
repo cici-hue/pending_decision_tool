@@ -5,12 +5,12 @@
 
 // 豆包 API 配置
 const DOUBAO_API_URL = 'https://ark.cn-beijing.volces.com/api/v3/chat/completions'
-const DOUBAO_MODEL = 'doubao-1-5-pro-32k-250115'
+const DOUBAO_MODEL = 'doubao-seed-2-0-pro-260215'
 
 // 您需要在环境变量中设置 API Key
 // export VITE_DOUBAO_API_KEY=your_api_key_here
 const getApiKey = () => {
-  const key = import.meta.env.VITE_DOUBAO_API_KEY || import.meta.env.DOUBAO_API_KEY
+  const key = import.meta.env.VITE_DOUBAO_API_KEY || import.meta.env.DOUBAO_API_KEY || import.meta.env.ARK_API_KEY
   if (!key) {
     throw new Error('请设置环境变量 VITE_DOUBAO_API_KEY')
   }
@@ -278,11 +278,15 @@ export async function extractPdfWithDoubao(pdfText: string): Promise<ExtractedRe
 /**
  * 发送邮件（使用 mailto 协议）
  */
-export function generateEmail(report: any): { to: string; subject: string; body: string } {
+export function generateEmail(report: any): { to: string; subject: string; body: string; htmlBody: string } {
   const subject = `Pending report- ${report.customer || ''} / ${report.vendor || ''}-${report.styleNo || ''}/${report.poNo || ''}/${report.itemNo || ''}`
 
   const defectList = report.defectDetails && report.defectDetails.length > 0
     ? report.defectDetails.map((d: any, index: number) => `${index + 1}.${d.description}: ${d.count}个 (${d.rate})`).join('\n')
+    : ''
+
+  const defectListHtml = report.defectDetails && report.defectDetails.length > 0
+    ? report.defectDetails.map((d: any, index: number) => `<div>${index + 1}.${d.description}: ${d.count}个 (${d.rate})</div>`).join('')
     : ''
 
   const body = `Dear      ,
@@ -302,18 +306,47 @@ We found the below mentioned issues during AQL inspection.
 
 ${defectList}
 
-I will pass you demos, sealing sample & qc file, please kindly check adn advise your comments.
-Once all issues are confirmed ok, the goods can be released directly, thanks.
+I will pass you demos, sealing sample & qc file, please kindly check with QA and advise your comments.
+Once all issues are confirmed ok, the goods can be released directly, thanks.`
 
+  // HTML format with DengXian font, size 12
+  const htmlBody = `<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+</head>
+<body style="font-family: DengXian, 'Microsoft YaHei', sans-serif; font-size: 12pt; line-height: 1.6;">
+<p>Dear      ,</p>
 
-Best regards,
-Lin Feng`
+<p>Re, Customer/Vendor: ${report.customer || ''} / ${report.vendor || ''}</p>
+
+<p>
+Style#: ${report.styleNo || ''}<br>
+PO#: ${report.poNo || ''}<br>
+Item#: ${report.itemNo || ''}<br>
+Delivered Qty: ${report.deliveredQty || ''}<br>
+Expected Ship Date: ${report.shipDate || ''}<br>
+Total Inspection Qty: ${report.inspectionQty || ''}
+</p>
+
+<hr style="border: none; border-top: 1px solid #ccc; margin: 20px 0;">
+
+<p>We found the below mentioned issues during AQL inspection.</p>
+
+${defectListHtml}
+<br>
+
+<p>I will pass you demos, sealing sample & qc file, please kindly check with QA and advise your comments.<br>
+Once all issues are confirmed ok, the goods can be released directly, thanks.</p>
+</body>
+</html>`
 
   return {
     // to: 'lin.feng@ottoint.com',
     to: 'cici.duan@ottoint.com',
     subject,
-    body
+    body,
+    htmlBody
   }
 }
 
