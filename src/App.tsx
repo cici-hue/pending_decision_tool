@@ -749,6 +749,9 @@ export default function App() {
                     </div>
                   </div>
 
+                  {/* Pending Decision Advisor */}
+                  <PendingDecisionAdvisor report={currentReport} />
+
                   {/* 生成邮件按钮 */}
                   <button
                     onClick={handleGenerateEmail}
