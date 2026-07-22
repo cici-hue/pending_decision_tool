@@ -1,18 +1,19 @@
 /**
- * 豆包 PDF 提取 API 服务
- * 使用豆包 LLM 智能提取 AQL 报告中的信息
+ * DeepSeek PDF 提取 API 服务
+ * 使用 DeepSeek LLM 智能提取 AQL 报告中的信息
  */
 
-// 豆包 API 配置
-const DOUBAO_API_URL = 'https://ark.cn-beijing.volces.com/api/v3/chat/completions'
-const DOUBAO_MODEL = 'doubao-seed-2-0-pro-260215'
+// DeepSeek API 配置
+// 兼容 OpenAI Chat Completions 格式
+const DEEPSEEK_API_URL = 'https://api.deepseek.com/v1/chat/completions'
+const DEEPSEEK_MODEL = 'deepseek-chat'
 
 // 您需要在环境变量中设置 API Key
-// export VITE_DOUBAO_API_KEY=your_api_key_here
+// export VITE_DEEPSEEK_API_KEY=your_api_key_here
 const getApiKey = () => {
-  const key = import.meta.env.VITE_DOUBAO_API_KEY || import.meta.env.DOUBAO_API_KEY || import.meta.env.ARK_API_KEY
+  const key = import.meta.env.VITE_DEEPSEEK_API_KEY || import.meta.env.DEEPSEEK_API_KEY || import.meta.env.OPENAI_API_KEY
   if (!key) {
-    throw new Error('请设置环境变量 VITE_DOUBAO_API_KEY')
+    throw new Error('请设置环境变量 VITE_DEEPSEEK_API_KEY')
   }
   return key
 }
@@ -169,26 +170,27 @@ export interface ExtractedReportData {
 }
 
 /**
- * 使用豆包 API 提取 PDF 文本中的信息
+ * 使用 DeepSeek API 提取 PDF 文本中的信息
  */
 export async function extractPdfWithDoubao(pdfText: string): Promise<ExtractedReportData> {
   try {
     const apiKey = getApiKey()
 
-    const response = await fetch(DOUBAO_API_URL, {
+    const response = await fetch(DEEPSEEK_API_URL, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
         'Authorization': `Bearer ${apiKey}`
       },
       body: JSON.stringify({
-        model: DOUBAO_MODEL,
+        model: DEEPSEEK_MODEL,
         messages: [
           {
             role: 'user',
             content: PDF_EXTRACTION_PROMPT + pdfText
           }
-        ]
+        ],
+        response_format: { type: 'json_object' }
       })
     })
 
@@ -198,16 +200,16 @@ export async function extractPdfWithDoubao(pdfText: string): Promise<ExtractedRe
     }
 
     const result = await response.json()
-    
-    // 调试：打印完整响应
-    console.log('豆包 API 完整响应:', JSON.stringify(result, null, 2))
 
-    // Responses API 返回格式不同，需要适配
-    // 尝试多种可能的响应结构
+    // 调试：打印完整响应
+    console.log('DeepSeek API 完整响应:', JSON.stringify(result, null, 2))
+
+    // DeepSeek 使用 OpenAI 兼容的 Chat Completions 格式
     let content: string | null = null
-    
-    if (result.output && Array.isArray(result.output) && result.output.length > 0) {
-      // 豆包 Responses API 格式 - 找 type 为 "message" 的输出
+
+    if (result.choices && result.choices[0] && result.choices[0].message) {
+      content = result.choices[0].message.content
+    } else if (result.output && Array.isArray(result.output) && result.output.length > 0) {
       const messageOutput = result.output.find((item: any) => item.type === 'message')
       if (messageOutput && messageOutput.content && Array.isArray(messageOutput.content)) {
         const textItem = messageOutput.content.find((c: any) => c.type === 'output_text')
@@ -215,39 +217,24 @@ export async function extractPdfWithDoubao(pdfText: string): Promise<ExtractedRe
           content = textItem.text
         }
       }
-      
-      // 备用：尝试第一个 output 项
-      if (!content) {
-        const outputItem = result.output[0]
-        if (typeof outputItem.content === 'string') {
-          content = outputItem.content
-        } else if (outputItem.content && outputItem.content[0] && outputItem.content[0].text) {
-          content = outputItem.content[0].text
-        }
-      }
-    } else if (result.choices && result.choices[0] && result.choices[0].message) {
-      // Chat Completions API 格式
-      content = result.choices[0].message.content
     } else if (result.content) {
-      // 直接 content 字段
       content = result.content
     } else if (result.text) {
-      // 直接 text 字段
       content = result.text
     }
-    
+
     if (!content) {
       console.error('无法从响应中提取内容，响应结构:', result)
       throw new Error('API返回格式异常：无法提取内容')
     }
-    
+
     // 处理 markdown 代码块，提取其中的 JSON
     let jsonContent = content
     const jsonBlockMatch = content.match(/```(?:json)?\s*([\s\S]*?)```/)
     if (jsonBlockMatch) {
       jsonContent = jsonBlockMatch[1].trim()
     }
-    
+
     // 尝试解析 JSON
     try {
       const parsed = JSON.parse(jsonContent)
@@ -270,7 +257,7 @@ export async function extractPdfWithDoubao(pdfText: string): Promise<ExtractedRe
       throw new Error('API返回内容不是有效的JSON格式')
     }
   } catch (error: any) {
-    console.error('豆包 API 调用失败:', error)
+    console.error('DeepSeek API 调用失败:', error)
     throw error
   }
 }
@@ -390,29 +377,24 @@ AQL检验报告内容：
 `
 
 /**
- * 使用 AI 分析验货报告
+ * 使用 DeepSeek API 分析验货报告
  */
 export async function analyzeReportWithAI(pdfText: string): Promise<string> {
   try {
     const apiKey = getApiKey()
 
-    const response = await fetch(DOUBAO_API_URL, {
+    const response = await fetch(DEEPSEEK_API_URL, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
         'Authorization': `Bearer ${apiKey}`
       },
       body: JSON.stringify({
-        model: DOUBAO_MODEL,
-        input: [
+        model: DEEPSEEK_MODEL,
+        messages: [
           {
             role: 'user',
-            content: [
-              {
-                type: 'input_text',
-                text: AI_ANALYSIS_PROMPT + pdfText
-              }
-            ]
+            content: AI_ANALYSIS_PROMPT + pdfText
           }
         ]
       })
@@ -462,7 +444,7 @@ export async function analyzeReportWithAI(pdfText: string): Promise<string> {
     
     return content
   } catch (error: any) {
-    console.error('AI 分析失败:', error)
+    console.error('DeepSeek API 分析失败:', error)
     throw error
   }
 }
