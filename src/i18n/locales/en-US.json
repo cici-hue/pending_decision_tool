@@ -62,11 +62,15 @@
         "content": "In the defect details area, you can: click defect description or count to edit; click Add Defect to add new defect records; click the delete button to remove unwanted defects."
       },
       {
-        "title": "5. Generate Email",
+        "title": "5. AI Pending Decision Advisor",
+        "content": "Click the 'Get AI Advice' button. The AI will analyze the current report's defect information and customer/vendor characteristics, then provide an ACCEPT or NOT ACCEPT recommendation along with similar historical cases (database integration is planned for a future version). AI advice is for reference only and final decisions should be based on human judgment."
+      },
+      {
+        "title": "6. Generate Email",
         "content": "After confirming the information is correct, click the Generate Email button. The system will automatically open your email client and generate an email with all the information. You only need to add the PDF attachment before sending."
       },
       {
-        "title": "6. History Records",
+        "title": "7. History Records",
         "content": "All processed reports are saved in the history. Click any record in the left list to view and edit again. History is saved locally in the browser and will be lost if browser data is cleared."
       }
     ],
@@ -75,9 +79,19 @@
       "items": [
         "Ensure the PDF file is in AQL inspection report format for correct information extraction",
         "If extraction results are inaccurate, you can click fields to manually modify",
+        "AI advice is for reference only and should not be the sole basis for final decisions",
         "It is recommended to verify all information carefully before sending emails",
         "Use the language switch button to change the interface language between Chinese and English"
       ]
     }
+  },
+  "advisor": {
+    "title": "Pending Decision Advisor",
+    "disclaimer": "AI advice is for reference only, do not use it as the sole basis for final decisions",
+    "getAdvice": "Get AI Advice",
+    "thinking": "Analyzing...",
+    "suggestion": "AI Suggestion",
+    "similarCases": "Similar Historical Cases",
+    "reasoning": "Reasoning"
   }
 }

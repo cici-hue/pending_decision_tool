@@ -5,6 +5,7 @@ import { LanguageSwitcher } from './components/LanguageSwitcher'
 import { Dashboard } from './components/Dashboard'
 import { EmailTemplates, EmailTemplate, DEFAULT_TEMPLATE } from './components/EmailTemplates'
 import CalibrationSystem from './components/CalibrationSystem'
+import { PendingDecisionAdvisor } from './components/PendingDecisionAdvisor'
 import { Upload, FileText, Mail, X, Save, Edit3, AlertCircle, CheckCircle, Loader2, HelpCircle, LayoutDashboard, CheckSquare, Square, Settings, Clock, Scale } from 'lucide-react'
 
 // PDF.js  worker 配置
