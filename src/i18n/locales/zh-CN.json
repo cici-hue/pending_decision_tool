@@ -11,6 +11,7 @@
     "emailSuccess": "邮件已打开！请添加PDF附件后发送",
     "noDefects": "暂无疵点信息",
     "addDefect": "新增疵点",
+    "defectDetails": "疵点详情",
     "defectDescription": "疵点描述",
     "defectCount": "疵点数量",
     "defectRate": "疵点比例",

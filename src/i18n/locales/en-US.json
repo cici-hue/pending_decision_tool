@@ -11,6 +11,7 @@
     "emailSuccess": "Email opened! Please add PDF attachment before sending",
     "noDefects": "No defect information",
     "addDefect": "Add Defect",
+    "defectDetails": "Defect Details",
     "defectDescription": "Defect Description",
     "defectCount": "Defect Count",
     "defectRate": "Defect Rate",
