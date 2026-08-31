@@ -31,6 +31,11 @@ const app = express();
 const PORT = process.env.PORT || 3001;
 const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key-change-in-production';
 
+// DeepSeek 配置（只在后端使用，绝不暴露给前端）
+const DEEPSEEK_API_KEY = process.env.DEEPSEEK_API_KEY;
+const DEEPSEEK_API_URL = process.env.DEEPSEEK_API_URL || 'https://api.deepseek.com/v1/chat/completions';
+const DEEPSEEK_MODEL = process.env.DEEPSEEK_MODEL || 'deepseek-chat';
+
 // 中间件
 app.use(cors());
 app.use(express.json({ limit: '50mb' }));
@@ -1303,6 +1308,160 @@ app.post('/api/import/pdf', authenticateToken, upload.single('file'), (req, res)
   }
 });
 
+// ==================== DeepSeek 代理接口 ====================
+// 注意：这些端点会调用 DeepSeek API，API key 仅存在于服务器环境变量中
+// 前端通过这些端点间接使用 AI 能力，key 永远不会暴露到浏览器
+
+// 简单的速率限制（每个 IP 每分钟最多 20 次请求）
+const deepseekRateLimit = new Map();
+const checkRateLimit = (ip) => {
+  const now = Date.now();
+  const windowMs = 60 * 1000; // 1 分钟
+  const maxRequests = 20;
+
+  if (!deepseekRateLimit.has(ip)) {
+    deepseekRateLimit.set(ip, []);
+  }
+
+  const timestamps = deepseekRateLimit.get(ip).filter(t => now - t < windowMs);
+  if (timestamps.length >= maxRequests) {
+    return false;
+  }
+
+  timestamps.push(now);
+  deepseekRateLimit.set(ip, timestamps);
+  return true;
+};
+
+// 定期清理过期的速率限制记录
+setInterval(() => {
+  const now = Date.now();
+  const windowMs = 60 * 1000;
+  for (const [ip, timestamps] of deepseekRateLimit.entries()) {
+    const valid = timestamps.filter(t => now - t < windowMs);
+    if (valid.length === 0) {
+      deepseekRateLimit.delete(ip);
+    } else {
+      deepseekRateLimit.set(ip, valid);
+    }
+  }
+}, 5 * 60 * 1000);
+
+// PDF 信息提取代理
+app.post('/api/deepseek/extract', async (req, res) => {
+  const clientIp = req.ip || req.connection.remoteAddress;
+  if (!checkRateLimit(clientIp)) {
+    return res.status(429).json({ error: '请求过于频繁，请稍后再试' });
+  }
+
+  if (!DEEPSEEK_API_KEY) {
+    console.error('DEEPSEEK_API_KEY 未配置');
+    return res.status(500).json({ error: '服务器配置错误：AI 服务未配置' });
+  }
+
+  try {
+    const { prompt, pdfText } = req.body;
+
+    if (!pdfText || typeof pdfText !== 'string') {
+      return res.status(400).json({ error: '缺少 pdfText 参数' });
+    }
+
+    if (pdfText.length > 100000) {
+      return res.status(400).json({ error: 'PDF 文本过长（最大 100KB）' });
+    }
+
+    const response = await fetch(DEEPSEEK_API_URL, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${DEEPSEEK_API_KEY}`
+      },
+      body: JSON.stringify({
+        model: DEEPSEEK_MODEL,
+        messages: [
+          {
+            role: 'user',
+            content: prompt + pdfText
+          }
+        ],
+        response_format: { type: 'json_object' }
+      })
+    });
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      console.error('DeepSeek API 错误:', response.status, errorText);
+      return res.status(response.status).json({
+        error: `DeepSeek API 请求失败: ${response.status}`,
+        details: errorText
+      });
+    }
+
+    const result = await response.json();
+    res.json(result);
+  } catch (error) {
+    console.error('DeepSeek 代理错误:', error);
+    res.status(500).json({ error: 'AI 服务调用失败', message: error.message });
+  }
+});
+
+// AI 分析报告代理
+app.post('/api/deepseek/analyze', async (req, res) => {
+  const clientIp = req.ip || req.connection.remoteAddress;
+  if (!checkRateLimit(clientIp)) {
+    return res.status(429).json({ error: '请求过于频繁，请稍后再试' });
+  }
+
+  if (!DEEPSEEK_API_KEY) {
+    console.error('DEEPSEEK_API_KEY 未配置');
+    return res.status(500).json({ error: '服务器配置错误：AI 服务未配置' });
+  }
+
+  try {
+    const { prompt, pdfText } = req.body;
+
+    if (!pdfText || typeof pdfText !== 'string') {
+      return res.status(400).json({ error: '缺少 pdfText 参数' });
+    }
+
+    if (pdfText.length > 100000) {
+      return res.status(400).json({ error: 'PDF 文本过长（最大 100KB）' });
+    }
+
+    const response = await fetch(DEEPSEEK_API_URL, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${DEEPSEEK_API_KEY}`
+      },
+      body: JSON.stringify({
+        model: DEEPSEEK_MODEL,
+        messages: [
+          {
+            role: 'user',
+            content: prompt + pdfText
+          }
+        ]
+      })
+    });
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      console.error('DeepSeek API 错误:', response.status, errorText);
+      return res.status(response.status).json({
+        error: `DeepSeek API 请求失败: ${response.status}`,
+        details: errorText
+      });
+    }
+
+    const result = await response.json();
+    res.json(result);
+  } catch (error) {
+    console.error('DeepSeek 代理错误:', error);
+    res.status(500).json({ error: 'AI 服务调用失败', message: error.message });
+  }
+});
+
 // ==================== 错误处理 ====================
 
 app.use((err, req, res, next) => {
@@ -1310,8 +1469,8 @@ app.use((err, req, res, next) => {
   res.status(500).json({ error: '服务器内部错误' });
 });
 
-// 启动服务器
-app.listen(PORT, () => {
+// 启动服务器 - 监听 0.0.0.0 以兼容云平台（Render/Railway 等）
+app.listen(PORT, '0.0.0.0', () => {
   console.log(`缺陷判定校准系统服务器运行在端口 ${PORT}`);
   console.log(`API地址: http://localhost:${PORT}/api`);
 });

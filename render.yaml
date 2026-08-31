@@ -1,0 +1,19 @@
+services:
+  - type: web
+    name: pending-report-backend
+    runtime: node
+    rootDir: server
+    plan: free
+    buildCommand: npm install
+    startCommand: node server.js
+    healthCheckPath: /api/cases
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: JWT_SECRET
+        sync: false  # 在 Render Dashboard 手动设置（强随机字符串）
+      - key: DEEPSEEK_API_KEY
+        sync: false  # 在 Render Dashboard 手动设置
+      - key: PORT
+        value: 10000
+    autoDeploy: true

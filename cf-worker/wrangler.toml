@@ -1,0 +1,16 @@
+name = "pending-report-deepseek-proxy"
+main = "src/index.js"
+compatibility_date = "2025-01-01"
+compatibility_flags = ["nodejs_compat"]
+
+# DeepSeek API Key - 在 Cloudflare Dashboard 设置（不要提交到 Git）
+# [vars]
+# DEEPSEEK_API_URL = "https://api.deepseek.com/v1/chat/completions"
+# DEEPSEEK_MODEL = "deepseek-chat"
+
+# 允许的 CORS 来源（生产环境替换为你的前端域名）
+[vars]
+ALLOWED_ORIGIN = "*"
+
+# 设置密钥（使用 wrangler secret put DEEPSEEK_API_KEY 命令设置）
+# wrangler secret put DEEPSEEK_API_KEY

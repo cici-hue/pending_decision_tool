@@ -1,6 +1,6 @@
 import { useState, useCallback, useRef } from 'react'
 import { useTranslation } from 'react-i18next'
-import { generateEmail as generateEmailContent, extractPdfWithDoubao } from './services/minimaxApi'
+import { generateEmail as generateEmailContent, extractPdfWithDeepSeek } from './services/minimaxApi'
 import { LanguageSwitcher } from './components/LanguageSwitcher'
 import { Dashboard } from './components/Dashboard'
 import { EmailTemplates, EmailTemplate, DEFAULT_TEMPLATE } from './components/EmailTemplates'
@@ -108,7 +108,7 @@ export default function App() {
         const pdfText = await extractPdfText(file)
         
         // 2. 使用 AI API 提取信息
-        const extracted = await extractPdfWithDoubao(pdfText)
+        const extracted = await extractPdfWithDeepSeek(pdfText)
         
         // 3. 创建报告数据
         const report: ReportData = {

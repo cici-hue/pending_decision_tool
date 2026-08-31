@@ -1,29 +1,18 @@
 /**
  * DeepSeek PDF 提取 API 服务
- * 使用 DeepSeek LLM 智能提取 AQL 报告中的信息
+ * 通过后端代理调用 DeepSeek LLM 智能提取 AQL 报告中的信息
+ * API key 仅存在于服务器，前端不再直接调用 DeepSeek
  */
 
-// DeepSeek API 配置
-// 兼容 OpenAI Chat Completions 格式
-const DEEPSEEK_API_URL = 'https://api.deepseek.com/v1/chat/completions'
-const DEEPSEEK_MODEL = 'deepseek-chat'
-
-// 您需要在环境变量中设置 API Key
-// export VITE_DEEPSEEK_API_KEY=your_api_key_here
-const getApiKey = () => {
-  const key = import.meta.env.VITE_DEEPSEEK_API_KEY || import.meta.env.DEEPSEEK_API_KEY || import.meta.env.OPENAI_API_KEY
-  if (!key) {
-    throw new Error('请设置环境变量 VITE_DEEPSEEK_API_KEY')
-  }
-  return key
-}
+// 后端代理地址（开发环境）
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3001'
 
 // PDF 文本提取提示词
 const PDF_EXTRACTION_PROMPT = `你是一个专业的AQL检验报告数据提取助手。请仔细分析以下PDF文本，根据字段位置关系提取信息，并以JSON格式返回。
 
 ## 字段提取规则（按位置关系）：
 
-1. **poNo** (PO/Split No): 
+1. **poNo** (PO/Split No):
    - 位置：在 "Ship Mode" 后面的一串数字
    - 示例：Ship Mode: SEA 后面跟着 113441
 
@@ -79,20 +68,20 @@ const PDF_EXTRACTION_PROMPT = `你是一个专业的AQL检验报告数据提取�
          - **疵点描述必须使用 Comments 列的内容**，不要用 Description 列
          - **不要合并**：每条匹配的记录都要单独列出，不要把多条记录的数量加总
       5. **匹配示例**：
-         
+
          **示例 A**：普通匹配
          - Pending: "small stains and spots through the fabric at collar facing"
          - Defect: "small stains" (1个), "spot through the fabric at collar facing" (3个)
          - 结果：两条独立记录，不要合并
-         
+
          **示例 B**：范围对范围
          - Pending: "neck diameter plus 1.5-2.5cm"
          - Defect: "neck diameter plus 1.5 to 2.5cm for all size" (32个)
          - 结果：一条记录
-         
+
          **示例 C**：范围对多个具体值（**不要合并**）
          - Pending: "neck diameter plus 1.5-2.5cm"
-         - Defect: 
+         - Defect:
            - "neck diameter plus 1.5cm" (10个)
            - "neck diameter plus 2cm" (15个)
            - "neck diameter plus 2.5cm" (7个)
@@ -140,7 +129,7 @@ const PDF_EXTRACTION_PROMPT = `你是一个专业的AQL检验报告数据提取�
       "rate": "9.4%"
     }
   ]
-  
+
   注意：
   1. Comments 为空的记录不要计入
   2. 疵点描述必须用 Comments 列的内容，不要用 Description 列
@@ -170,53 +159,37 @@ export interface ExtractedReportData {
 }
 
 /**
- * 使用 DeepSeek API 提取 PDF 文本中的信息
+ * 通过后端代理调用 DeepSeek API 提取 PDF 文本中的信息
+ * 前端不再直接调用 DeepSeek，API key 仅存在于服务器
  */
-export async function extractPdfWithDoubao(pdfText: string): Promise<ExtractedReportData> {
+export async function extractPdfWithDeepSeek(pdfText: string): Promise<ExtractedReportData> {
   try {
-    const apiKey = getApiKey()
-
-    const response = await fetch(DEEPSEEK_API_URL, {
+    const response = await fetch(`${API_BASE_URL}/api/deepseek/extract`, {
       method: 'POST',
       headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${apiKey}`
+        'Content-Type': 'application/json'
       },
       body: JSON.stringify({
-        model: DEEPSEEK_MODEL,
-        messages: [
-          {
-            role: 'user',
-            content: PDF_EXTRACTION_PROMPT + pdfText
-          }
-        ],
-        response_format: { type: 'json_object' }
+        prompt: PDF_EXTRACTION_PROMPT,
+        pdfText
       })
     })
 
     if (!response.ok) {
-      const errorText = await response.text()
-      throw new Error(`API请求失败: ${response.status} - ${errorText}`)
+      const errorData = await response.json().catch(() => ({}))
+      throw new Error(errorData.error || `后端代理请求失败: ${response.status}`)
     }
 
     const result = await response.json()
 
     // 调试：打印完整响应
-    console.log('DeepSeek API 完整响应:', JSON.stringify(result, null, 2))
+    console.log('DeepSeek 代理完整响应:', JSON.stringify(result, null, 2))
 
     // DeepSeek 使用 OpenAI 兼容的 Chat Completions 格式
     let content: string | null = null
 
     if (result.choices && result.choices[0] && result.choices[0].message) {
       content = result.choices[0].message.content
-    } else if (result.output && Array.isArray(result.output) && result.output.length > 0) {
-      const messageOutput = result.output.find((item: any) => item.type === 'message')
-      if (messageOutput && messageOutput.content && Array.isArray(messageOutput.content)) {
-        const textItem = messageOutput.content.find((c: any) => c.type === 'output_text')
-        if (textItem && textItem.text) {
-          content = textItem.text
-        }
-      }
     } else if (result.content) {
       content = result.content
     } else if (result.text) {
@@ -257,7 +230,7 @@ export async function extractPdfWithDoubao(pdfText: string): Promise<ExtractedRe
       throw new Error('API返回内容不是有效的JSON格式')
     }
   } catch (error: any) {
-    console.error('DeepSeek API 调用失败:', error)
+    console.error('DeepSeek 代理调用失败:', error)
     throw error
   }
 }
@@ -377,74 +350,50 @@ AQL检验报告内容：
 `
 
 /**
- * 使用 DeepSeek API 分析验货报告
+ * 通过后端代理调用 DeepSeek API 分析验货报告
+ * 前端不再直接调用 DeepSeek，API key 仅存在于服务器
  */
 export async function analyzeReportWithAI(pdfText: string): Promise<string> {
   try {
-    const apiKey = getApiKey()
-
-    const response = await fetch(DEEPSEEK_API_URL, {
+    const response = await fetch(`${API_BASE_URL}/api/deepseek/analyze`, {
       method: 'POST',
       headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${apiKey}`
+        'Content-Type': 'application/json'
       },
       body: JSON.stringify({
-        model: DEEPSEEK_MODEL,
-        messages: [
-          {
-            role: 'user',
-            content: AI_ANALYSIS_PROMPT + pdfText
-          }
-        ]
+        prompt: AI_ANALYSIS_PROMPT,
+        pdfText
       })
     })
 
     if (!response.ok) {
-      const errorText = await response.text()
-      throw new Error(`API请求失败: ${response.status} - ${errorText}`)
+      const errorData = await response.json().catch(() => ({}))
+      throw new Error(errorData.error || `后端代理请求失败: ${response.status}`)
     }
 
     const result = await response.json()
-    
-    console.log('AI 分析 API 响应:', JSON.stringify(result, null, 2))
+
+    console.log('AI 分析代理响应:', JSON.stringify(result, null, 2))
 
     // 提取分析内容
     let content: string | null = null
-    
-    if (result.output && Array.isArray(result.output) && result.output.length > 0) {
-      const messageOutput = result.output.find((item: any) => item.type === 'message')
-      if (messageOutput && messageOutput.content && Array.isArray(messageOutput.content)) {
-        const textItem = messageOutput.content.find((c: any) => c.type === 'output_text')
-        if (textItem && textItem.text) {
-          content = textItem.text
-        }
-      }
-      
-      if (!content) {
-        const outputItem = result.output[0]
-        if (typeof outputItem.content === 'string') {
-          content = outputItem.content
-        } else if (outputItem.content && outputItem.content[0] && outputItem.content[0].text) {
-          content = outputItem.content[0].text
-        }
-      }
-    } else if (result.choices && result.choices[0] && result.choices[0].message) {
+
+    if (result.choices && result.choices[0] && result.choices[0].message) {
       content = result.choices[0].message.content
     } else if (result.content) {
       content = result.content
     } else if (result.text) {
       content = result.text
     }
-    
+
     if (!content) {
       console.error('无法从响应中提取内容，响应结构:', result)
       throw new Error('API返回格式异常：无法提取内容')
     }
-    
+
     return content
   } catch (error: any) {
-    console.error('DeepSeek API 分析失败:', error)
+    console.error('DeepSeek 代理分析失败:', error)
     throw error
   }
 }
