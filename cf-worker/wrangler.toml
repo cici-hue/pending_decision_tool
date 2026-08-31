@@ -1,18 +1,8 @@
-name = "pending-report-backend"
+name = "deepseek-proxy"
 main = "src/index.js"
 compatibility_date = "2025-01-01"
-compatibility_flags = ["nodejs_compat"]
 
 # DeepSeek API Key - 使用 wrangler secret put DEEPSEEK_API_KEY 设置
-# JWT_SECRET - 使用 wrangler secret put JWT_SECRET 设置
-
-# D1 数据库
-# 创建命令: npx wrangler d1 create pending-report-db
-# 然后将返回的 database_id 填到下面
-[[d1_databases]]
-binding = "DB"
-database_name = "pending-report-db"
-database_id = "REPLACE_WITH_YOUR_D1_ID"
 
 # 允许的 CORS 来源（生产环境填你的前端域名）
 [vars]

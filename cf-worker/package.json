@@ -1,20 +1,11 @@
 {
-  "name": "pending-report-backend",
+  "name": "deepseek-proxy",
   "version": "1.0.0",
-  "description": "Cloudflare Worker - Pending Report Backend (Express迁移版 + DeepSeek代理)",
+  "description": "Cloudflare Worker - DeepSeek API 代理（保护 API key）",
   "main": "src/index.js",
-  "type": "module",
   "scripts": {
     "dev": "wrangler dev",
-    "deploy": "wrangler deploy",
-    "tail": "wrangler tail",
-    "db:init": "wrangler d1 execute pending-report-db --file=schema.sql",
-    "db:init:local": "wrangler d1 execute pending-report-db --local --file=schema.sql",
-    "r2:create": "wrangler r2 bucket create pending-report-uploads",
-    "d1:create": "wrangler d1 create pending-report-db"
-  },
-  "dependencies": {
-    "jose": "^5.9.6"
+    "deploy": "wrangler deploy"
   },
   "devDependencies": {
     "wrangler": "^3.90.0"
