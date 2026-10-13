@@ -4,8 +4,9 @@
  * API key 仅存在于服务器，前端不再直接调用 DeepSeek
  */
 
-// 后端代理地址（开发环境）
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3001'
+// 后端代理地址：生产环境使用空字符串（同源相对路径，由 Cloudflare Pages Functions 处理）
+// 本地开发时可在 .env 中设置 VITE_API_BASE_URL 指向本地 wrangler pages dev
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || ''
 
 // PDF 文本提取提示词
 const PDF_EXTRACTION_PROMPT = `你是一个专业的AQL检验报告数据提取助手。请仔细分析以下PDF文本，根据字段位置关系提取信息，并以JSON格式返回。
